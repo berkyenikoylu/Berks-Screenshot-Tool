@@ -22,8 +22,8 @@ TRANSLATIONS = {
     
     # === Konsol Mesajları ===
     "console_title": {
-        "tr": "🎮 Berk's Screenshot Tool - Ekran Görüntüsü Aracı",
-        "en": "🎮 Berk's Screenshot Tool - Screenshot Utility"
+        "tr": "Berk's Screenshot Tool - Ekran Goruntusu Araci",
+        "en": "Berk's Screenshot Tool - Screenshot Utility"
     },
     "hotkey_label": {
         "tr": "Kısayol Tuşu",
@@ -58,8 +58,8 @@ TRANSLATIONS = {
         "en": "Right-click tray icon to exit."
     },
     "hotkey_active": {
-        "tr": "🎮 Kısayol tuşu aktif",
-        "en": "🎮 Hotkey active"
+        "tr": "Kisayol tusu aktif",
+        "en": "Hotkey active"
     },
     "saved": {
         "tr": "Kaydedildi",

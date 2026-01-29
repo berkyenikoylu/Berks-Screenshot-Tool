@@ -13,19 +13,27 @@ def show_notification(message: str = "", duration: float = 2.0, dark_mode: bool 
     Bildirim göster - ayrı bir Python process'inde çalışır.
     Bu yaklaşım Tkinter thread sorunlarını tamamen önler.
     """
-    # Bildirim scriptini ayrı bir process olarak çalıştır
-    script_path = os.path.join(os.path.dirname(__file__), "_notification_process.py")
-    
     try:
-        # Subprocess olarak başlat ve beklemeden devam et
-        subprocess.Popen(
-            [sys.executable, script_path, message, str(duration), str(dark_mode)],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            creationflags=subprocess.CREATE_NO_WINDOW
-        )
+        # EXE mi yoksa Python script mi kontrol et
+        if getattr(sys, 'frozen', False):
+            # Frozen EXE - notification modunu ayrı process olarak başlat
+            subprocess.Popen(
+                [sys.executable, "--notification", message, str(duration), str(dark_mode)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+        else:
+            # Python script - doğrudan _notification_process.py'yi çalıştır
+            script_path = os.path.join(os.path.dirname(__file__), "_notification_process.py")
+            subprocess.Popen(
+                [sys.executable, script_path, message, str(duration), str(dark_mode)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
     except Exception as e:
-        print(f"Bildirim başlatılamadı: {e}")
+        print(f"Bildirim baslatilamadi: {e}")
 
 
 if __name__ == "__main__":

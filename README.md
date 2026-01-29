@@ -318,5 +318,3 @@ MIT Lisansı - [LICENSE](LICENSE) dosyasına bakınız.
 **Berk** - [GitHub](https://github.com/berkyenikoylu)
 
 ---
-
-Made with ❤️ in Turkey | Türkiye'de ❤️ ile yapıldı

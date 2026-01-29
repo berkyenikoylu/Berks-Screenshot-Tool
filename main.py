@@ -127,10 +127,16 @@ class BerksScreenshotTool:
         # Mevcut hotkey'i kaydet
         old_hotkey = self.config.get("hotkey", "F12")
         
-        # Ayarları ayrı process olarak aç (PyQt6 thread sorunu çözümü)
-        settings_script = Path(__file__).parent / "ui" / "settings_dialog.py"
-        subprocess.Popen([sys.executable, str(settings_script)], 
-                       creationflags=subprocess.CREATE_NO_WINDOW)
+        # EXE mi yoksa Python script mi kontrol et
+        if getattr(sys, 'frozen', False):
+            # Frozen EXE - settings modunu ayrı process olarak başlat
+            subprocess.Popen([sys.executable, "--settings"], 
+                           creationflags=subprocess.CREATE_NO_WINDOW)
+        else:
+            # Python script - doğrudan settings_dialog.py'yi çalıştır
+            settings_script = Path(__file__).parent / "ui" / "settings_dialog.py"
+            subprocess.Popen([sys.executable, str(settings_script)], 
+                           creationflags=subprocess.CREATE_NO_WINDOW)
         
         # Config değişikliğini kontrol eden thread
         def check_config_changes():
@@ -246,5 +252,47 @@ def main():
     app.run()
 
 
+def open_settings_only():
+    """Sadece ayarlar penceresini aç (EXE için --settings modu)."""
+    import sys
+    from PyQt6.QtWidgets import QApplication
+    
+    # settings_dialog modülünü import et
+    sys.path.insert(0, str(Path(__file__).parent / "ui"))
+    from settings_dialog import SettingsDialog
+    
+    qt_app = QApplication(sys.argv)
+    dialog = SettingsDialog()
+    dialog.show()
+    sys.exit(qt_app.exec())
+
+
+def show_notification_only():
+    """Sadece bildirim göster (EXE için --notification modu)."""
+    import sys
+    from _notification_process import main as notification_main
+    notification_main()
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    import multiprocessing
+    
+    # PyInstaller için multiprocessing desteği (EXE'de subprocess spawning sorunu çözer)
+    multiprocessing.freeze_support()
+    
+    # --settings argümanı varsa sadece ayarları aç
+    if "--settings" in sys.argv:
+        open_settings_only()
+    # --notification argümanı varsa sadece bildirim göster
+    elif "--notification" in sys.argv:
+        # --notification'dan sonraki argümanları al
+        idx = sys.argv.index("--notification")
+        if len(sys.argv) > idx + 3:
+            sys.argv = [sys.argv[0], sys.argv[idx + 1], sys.argv[idx + 2], sys.argv[idx + 3]]
+        show_notification_only()
+    else:
+        main()
+
+
+
