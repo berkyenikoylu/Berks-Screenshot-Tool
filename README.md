@@ -6,6 +6,8 @@
 
 🌍 **Language / Dil:** [English](#-english) | [Türkçe](#-türkçe)
 
+[![program_screenshot](https://i.imgur.com/p3lQSTP.png)]()
+
 ---
 
 ## 🇬🇧 English
