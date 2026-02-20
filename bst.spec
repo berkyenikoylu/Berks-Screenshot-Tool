@@ -12,15 +12,16 @@ block_cipher = None
 # Proje dizini
 project_dir = Path(SPECPATH)
 
+# UPX dizini (sıkıştırma için)
+upx_dir = r'C:\upx-5.1.0-win64'
+
 a = Analysis(
-    ['main.py'],
-    pathex=[str(project_dir)],
+    ['main.py', 'ui/settings_dialog.py', 'monitor_selector.py'],  # Tüm entry point'ler
+    pathex=[str(project_dir), str(project_dir / 'ui')],
     binaries=[],
     datas=[
         # Ses dosyaları
         ('sounds/*.wav', 'sounds'),
-        # UI modülleri (eğer ayrı klasördeyse)
-        ('ui/*.py', 'ui'),
     ],
     hiddenimports=[
         'pystray._win32',
@@ -36,6 +37,27 @@ a = Analysis(
         'PyQt6.QtWidgets',
         'PyQt6.QtCore',
         'PyQt6.QtGui',
+        # Numpy (capture.py'de siyah ekran kontrolü için)
+        'numpy',
+        'numpy.core',
+        'numpy.core.multiarray',
+        # DXcam (opsiyonel, tam ekran oyunlar)
+        'dxcam',
+        # Windows ses
+        'winsound',
+        'ctypes',
+        # UI modülleri
+        'settings_dialog',
+        'monitor_selector',
+        # Yerel modüller
+        'config',
+        'i18n',
+        'capture',
+        'detector',
+        'hotkeys',
+        'naming',
+        'notification',
+        '_notification_process',
     ],
     hookspath=[],
     hooksconfig={},
@@ -61,6 +83,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
+    upx_dir=upx_dir,  # UPX dizini
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,  # Konsol penceresi gösterme

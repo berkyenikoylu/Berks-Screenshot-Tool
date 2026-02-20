@@ -8,7 +8,7 @@ import sys
 import os
 
 
-def show_notification(message: str = "", duration: float = 2.0, dark_mode: bool = True):
+def show_notification(message: str = "", duration: float = 2.0, dark_mode: bool = True, title: str = "Screenshot Taken"):
     """
     Bildirim göster - ayrı bir Python process'inde çalışır.
     Bu yaklaşım Tkinter thread sorunlarını tamamen önler.
@@ -18,7 +18,7 @@ def show_notification(message: str = "", duration: float = 2.0, dark_mode: bool 
         if getattr(sys, 'frozen', False):
             # Frozen EXE - notification modunu ayrı process olarak başlat
             subprocess.Popen(
-                [sys.executable, "--notification", message, str(duration), str(dark_mode)],
+                [sys.executable, "--notification", message, str(duration), str(dark_mode), title],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 creationflags=subprocess.CREATE_NO_WINDOW
@@ -27,7 +27,7 @@ def show_notification(message: str = "", duration: float = 2.0, dark_mode: bool 
             # Python script - doğrudan _notification_process.py'yi çalıştır
             script_path = os.path.join(os.path.dirname(__file__), "_notification_process.py")
             subprocess.Popen(
-                [sys.executable, script_path, message, str(duration), str(dark_mode)],
+                [sys.executable, script_path, message, str(duration), str(dark_mode), title],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 creationflags=subprocess.CREATE_NO_WINDOW

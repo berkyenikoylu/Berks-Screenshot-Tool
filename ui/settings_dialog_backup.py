@@ -4,12 +4,12 @@ Dark/Light mod destekli, özel kısayol tuşu seçici ve çoklu dil desteği.
 """
 
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QPropertyAnimation, QEasingCurve, pyqtProperty
-from PyQt6.QtGui import QFont, QCursor, QTransform, QColor
+from PyQt6.QtGui import QFont, QCursor, QTransform
 from PyQt6.QtWidgets import (
     QApplication, QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
     QPushButton, QFrame, QWidget, QLineEdit, QComboBox, QSlider,
     QCheckBox, QRadioButton, QFileDialog, QMessageBox, QButtonGroup,
-    QGraphicsOpacityEffect, QGraphicsDropShadowEffect
+    QGraphicsOpacityEffect
 )
 import sys
 import os
@@ -17,14 +17,8 @@ import keyboard as kb
 import threading
 
 # Ana modülü import edebilmek için path ekle
-import sys as _sys
-if getattr(_sys, 'frozen', False):
-    _base = _sys._MEIPASS
-else:
-    _base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _base not in _sys.path:
-    _sys.path.insert(0, _base)
-from config import load_config, save_config, get_resource_dir
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import load_config, save_config
 from i18n import t, get_available_languages, set_language, get_language
 from pathlib import Path
 
@@ -155,61 +149,25 @@ class SettingsDialog(QDialog):
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint)
     
     def _apply_theme(self):
-        """Tema renklerini uygula - Figma Slate Tasarım."""
+        """Tema renklerini uygula."""
         if self.is_dark_mode:
-            # Figma Slate Paleti
-            self.bg_color = "#334155"       # slate-700
-            self.bg_gradient_start = "#334155"
-            self.bg_gradient_end = "#1e293b"  # slate-800
-            self.header_bg = "#2563eb"       # blue-600
-            self.section_bg = "#475569"      # slate-600
+            self.bg_color = "#1e1e1e"
             self.fg_color = "#ffffff"
-            self.muted_fg = "#e2e8f0"        # slate-200
-            self.accent_color = "#3b82f6"    # blue-500
-            self.entry_bg = "#475569"        # slate-600
+            self.accent_color = "#0078d4"
+            self.entry_bg = "#2d2d2d"
             self.entry_fg = "#ffffff"
-            self.hover_color = "#2563eb"     # blue-600
-            self.button_gradient_start = "#3b82f6"  # blue-500
-            self.button_gradient_end = "#2563eb"    # blue-600
-            self.border_color = "#64748b"    # slate-500
-            self.footer_bg = "#000000"
-            
-            # Bölüm başlık renkleri (Figma'dan)
-            self.capture_color = "#f472b6"    # pink-400
-            self.storage_color = "#fb923c"    # orange-400
-            self.feedback_color = "#facc15"   # yellow-400
-            self.appearance_color = "#facc15" # yellow-400
+            self.hover_color = "#3d3d3d"
         else:
-            # Açık tema - Figma light mode
-            self.bg_color = "#f1f5f9"       # slate-100
-            self.bg_gradient_start = "#f1f5f9"
-            self.bg_gradient_end = "#e2e8f0"  # slate-200
-            self.header_bg = "#2563eb"
-            self.section_bg = "#e2e8f0"
-            self.fg_color = "#1e293b"        # slate-800
-            self.muted_fg = "#475569"        # slate-600
-            self.accent_color = "#2563eb"    # blue-600
+            self.bg_color = "#f5f5f5"
+            self.fg_color = "#1e1e1e"
+            self.accent_color = "#0078d4"
             self.entry_bg = "#ffffff"
-            self.entry_fg = "#1e293b"
-            self.hover_color = "#3b82f6"
-            self.button_gradient_start = "#3b82f6"
-            self.button_gradient_end = "#2563eb"
-            self.border_color = "#cbd5e1"    # slate-300
-            self.footer_bg = "#1e293b"
-            
-            # Bölüm başlık renkleri (açık mod için ayarlanmış)
-            self.capture_color = "#db2777"    # pink-600
-            self.storage_color = "#ea580c"    # orange-600
-            self.feedback_color = "#ca8a04"   # yellow-600
-            self.appearance_color = "#ca8a04"
-        
-        # Eski section_color'u varsayılan olarak tut (uyumluluk için)
-        self.section_color = self.capture_color
+            self.entry_fg = "#1e1e1e"
+            self.hover_color = "#e0e0e0"
         
         self.setStyleSheet(f"""
             QDialog {{
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 {self.bg_gradient_start}, stop:1 {self.bg_gradient_end});
+                background-color: {self.bg_color};
             }}
             QLabel {{
                 color: {self.fg_color};
@@ -218,92 +176,65 @@ class SettingsDialog(QDialog):
             QLineEdit {{
                 background-color: {self.entry_bg};
                 color: {self.entry_fg};
-                border: 1px solid {self.border_color};
-                border-radius: 8px;
-                padding: 8px 12px;
-                selection-background-color: {self.accent_color};
-            }}
-            QLineEdit:focus {{
-                border: 1px solid {self.accent_color};
+                border: 1px solid {self.hover_color};
+                border-radius: 4px;
+                padding: 6px;
             }}
             QComboBox {{
                 background-color: {self.entry_bg};
                 color: {self.entry_fg};
-                border: 1px solid {self.border_color};
-                border-radius: 8px;
-                padding: 8px 12px;
-            }}
-            QComboBox:hover {{
-                border: 1px solid {self.accent_color};
+                border: 1px solid {self.hover_color};
+                border-radius: 4px;
+                padding: 6px;
             }}
             QComboBox::drop-down {{
                 border: none;
-                width: 25px;
             }}
             QComboBox QAbstractItemView {{
                 background-color: {self.entry_bg};
                 color: {self.entry_fg};
                 selection-background-color: {self.accent_color};
-                border: 1px solid {self.border_color};
-                border-radius: 8px;
-                padding: 4px;
             }}
             QSlider::groove:horizontal {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {self.entry_bg}, stop:1 {self.accent_color});
+                background: {self.entry_bg};
                 height: 8px;
                 border-radius: 4px;
             }}
             QSlider::handle:horizontal {{
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 #ffffff, stop:1 {self.accent_color});
-                width: 20px;
-                height: 20px;
-                margin: -6px 0;
-                border-radius: 10px;
-                border: 2px solid {self.accent_color};
-            }}
-            QSlider::handle:horizontal:hover {{
-                background: #ffffff;
+                background: {self.accent_color};
+                width: 18px;
+                height: 18px;
+                margin: -5px 0;
+                border-radius: 9px;
             }}
             QCheckBox {{
                 color: {self.fg_color};
-                spacing: 10px;
+                spacing: 8px;
             }}
             QCheckBox::indicator {{
-                width: 20px;
-                height: 20px;
-                border: 2px solid {self.accent_color};
-                border-radius: 6px;
+                width: 18px;
+                height: 18px;
+                border: 2px solid {self.hover_color};
+                border-radius: 4px;
                 background: {self.entry_bg};
             }}
-            QCheckBox::indicator:hover {{
-                border-color: #64B5F6;
-                background: rgba(33, 150, 243, 0.1);
-            }}
             QCheckBox::indicator:checked {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 {self.button_gradient_start}, stop:1 {self.button_gradient_end});
+                background: {self.accent_color};
                 border-color: {self.accent_color};
             }}
             QRadioButton {{
                 color: {self.fg_color};
-                spacing: 10px;
+                spacing: 8px;
             }}
             QRadioButton::indicator {{
-                width: 20px;
-                height: 20px;
-                border: 2px solid {self.accent_color};
-                border-radius: 10px;
+                width: 18px;
+                height: 18px;
+                border: 2px solid {self.hover_color};
+                border-radius: 9px;
                 background: {self.entry_bg};
             }}
-            QRadioButton::indicator:hover {{
-                border-color: #64B5F6;
-                background: rgba(33, 150, 243, 0.1);
-            }}
             QRadioButton::indicator:checked {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 {self.button_gradient_start}, stop:1 {self.button_gradient_end});
+                background: {self.accent_color};
                 border-color: {self.accent_color};
             }}
         """)
@@ -363,7 +294,7 @@ class SettingsDialog(QDialog):
         layout.addLayout(top_bar)
         
         # === Yakalama Bölümü ===
-        self._add_section_label(layout, t("settings_capture"), "capture")
+        self._add_section_label(layout, t("settings_capture"))
         
         # Kısayol Tuşu
         hotkey_layout = QHBoxLayout()
@@ -384,16 +315,14 @@ class SettingsDialog(QDialog):
         self.hotkey_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.hotkey_btn.setStyleSheet(f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {self.button_gradient_start}, stop:1 {self.button_gradient_end});
+                background-color: {self.accent_color};
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 8px 16px;
+                border-radius: 4px;
+                padding: 6px 12px;
             }}
             QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #1E88E5, stop:1 #42A5F5);
+                background-color: #1084d8;
             }}
         """)
         self.hotkey_btn.clicked.connect(self._start_key_listener)
@@ -469,11 +398,10 @@ class SettingsDialog(QDialog):
         self.monitor_display.setFont(QFont("Segoe UI", 10))
         self.monitor_display.setStyleSheet(f"""
             QLabel {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {self.button_gradient_start}, stop:1 {self.button_gradient_end});
+                background-color: {self.accent_color};
                 color: white;
-                padding: 8px 16px;
-                border-radius: 8px;
+                padding: 6px 12px;
+                border-radius: 4px;
             }}
         """)
         monitor_layout.addWidget(self.monitor_display)
@@ -483,16 +411,14 @@ class SettingsDialog(QDialog):
         monitor_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         monitor_btn.setStyleSheet(f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {self.button_gradient_start}, stop:1 {self.button_gradient_end});
+                background-color: {self.accent_color};
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 8px 16px;
+                border-radius: 4px;
+                padding: 6px 12px;
             }}
             QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #1E88E5, stop:1 #42A5F5);
+                background-color: #1084d8;
             }}
         """)
         monitor_btn.clicked.connect(self._open_monitor_selector)
@@ -502,7 +428,7 @@ class SettingsDialog(QDialog):
         layout.addLayout(monitor_layout)
         
         # === Depolama Bölümü ===
-        self._add_section_label(layout, t("settings_storage"), "storage")
+        self._add_section_label(layout, t("settings_storage"))
         
         path_layout = QHBoxLayout()
         path_label = QLabel(t("settings_save_folder"))
@@ -519,16 +445,14 @@ class SettingsDialog(QDialog):
         browse_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         browse_btn.setStyleSheet(f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {self.button_gradient_start}, stop:1 {self.button_gradient_end});
+                background-color: {self.accent_color};
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 8px 16px;
+                border-radius: 4px;
+                padding: 6px 12px;
             }}
             QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #1E88E5, stop:1 #42A5F5);
+                background-color: #1084d8;
             }}
         """)
         browse_btn.clicked.connect(self._browse_folder)
@@ -537,7 +461,7 @@ class SettingsDialog(QDialog):
         layout.addLayout(path_layout)
         
         # === Geri Bildirim Bölümü ===
-        self._add_section_label(layout, t("settings_feedback"), "feedback")
+        self._add_section_label(layout, t("settings_feedback"))
         
         # Ses
         sound_layout = QHBoxLayout()
@@ -549,8 +473,8 @@ class SettingsDialog(QDialog):
         self.sound_combo = QComboBox()
         self.sound_combo.setFixedWidth(150)
         
-        # Ses dosyalarını bul - bundled kaynaklar için doğru dizini kullan
-        sounds_dir = get_resource_dir() / "sounds"
+        # Ses dosyalarını bul
+        sounds_dir = Path(__file__).parent.parent / "sounds"
         self.sound_options = [("settings_sound_none", "none")]
         
         if sounds_dir.exists():
@@ -568,16 +492,14 @@ class SettingsDialog(QDialog):
         test_sound_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         test_sound_btn.setStyleSheet(f"""
             QPushButton {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {self.button_gradient_start}, stop:1 {self.button_gradient_end});
+                background-color: {self.accent_color};
                 color: white;
                 border: none;
-                border-radius: 8px;
-                padding: 8px 16px;
+                border-radius: 4px;
+                padding: 6px 12px;
             }}
             QPushButton:hover {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #1E88E5, stop:1 #42A5F5);
+                background-color: #1084d8;
             }}
         """)
         test_sound_btn.clicked.connect(self._test_sound)
@@ -597,7 +519,7 @@ class SettingsDialog(QDialog):
         layout.addWidget(self.notification_check)
         
         # === Görünüm Bölümü ===
-        self._add_section_label(layout, t("settings_appearance"), "appearance")
+        self._add_section_label(layout, t("settings_appearance"))
         
         # Dil
         lang_layout = QHBoxLayout()
@@ -617,8 +539,13 @@ class SettingsDialog(QDialog):
         lang_layout.addStretch()
         layout.addLayout(lang_layout)
         
-        # Dark mode checkbox kaldırıldı - sağ üstteki tema butonu kullanılıyor
-        # (eski dark_mode_check yerine)
+        # Karanlık mod
+        self.dark_mode_check = QCheckBox(t("settings_dark_mode"))
+        self.dark_mode_check.setFont(QFont("Segoe UI", 10))
+        self.dark_mode_check.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        self.dark_mode_check.setChecked(self.is_dark_mode)
+        self.dark_mode_check.stateChanged.connect(self._on_dark_mode_change)
+        layout.addWidget(self.dark_mode_check)
         
         # === Boşluk ===
         layout.addStretch()
@@ -629,19 +556,17 @@ class SettingsDialog(QDialog):
         
         cancel_btn = QPushButton(t("settings_cancel"))
         cancel_btn.setFont(QFont("Segoe UI", 11))
-        cancel_btn.setFixedSize(120, 40)
+        cancel_btn.setFixedSize(100, 40)
         cancel_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        # Figma: bg-slate-700 border-slate-600
         cancel_btn.setStyleSheet(f"""
             QPushButton {{
-                background-color: #334155;
-                color: white;
-                border: 1px solid {self.border_color};
-                border-radius: 8px;
+                background-color: {self.hover_color};
+                color: {self.fg_color};
+                border: none;
+                border-radius: 4px;
             }}
             QPushButton:hover {{
-                background-color: #475569;
-                border-color: #64748b;
+                background-color: {self.entry_bg};
             }}
         """)
         cancel_btn.clicked.connect(self.reject)
@@ -651,16 +576,15 @@ class SettingsDialog(QDialog):
         save_btn.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
         save_btn.setFixedSize(120, 40)
         save_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
-        # Figma: bg-blue-600 hover:bg-blue-700
         save_btn.setStyleSheet(f"""
             QPushButton {{
-                background-color: #2563eb;
+                background-color: {self.accent_color};
                 color: white;
                 border: none;
-                border-radius: 8px;
+                border-radius: 4px;
             }}
             QPushButton:hover {{
-                background-color: #1d4ed8;
+                background-color: #1084d8;
             }}
         """)
         save_btn.clicked.connect(self._save_settings)
@@ -679,64 +603,12 @@ class SettingsDialog(QDialog):
         for rb in self.format_radios.values():
             rb.toggled.connect(self._on_setting_changed)
     
-    def _add_section_label(self, layout, text, section_type="capture"):
-        """Bölüm etiketi ekle - Figma tasarımı: ayırıcı çizgi ve renkli başlık."""
-        # Bölüm tipine göre renk seç
-        color_map = {
-            "capture": self.capture_color,
-            "storage": self.storage_color,
-            "feedback": self.feedback_color,
-            "appearance": self.appearance_color
-        }
-        section_color = color_map.get(section_type, self.capture_color)
-        
-        # Üst ayırıcı çizgi (ilk bölüm hariç)
-        if section_type != "capture":
-            separator = QFrame()
-            separator.setFrameShape(QFrame.Shape.HLine)
-            separator.setFixedHeight(2)
-            separator.setStyleSheet(f"background-color: {self.border_color}; margin-top: 12px; margin-bottom: 4px;")
-            layout.addWidget(separator)
-        
-        # Bölüm başlığı container - tema'ya göre arka plan
-        header_widget = QWidget()
-        if self.is_dark_mode:
-            bg_color = "rgba(71, 85, 105, 0.6)"  # slate-600/60 for dark
-        else:
-            bg_color = "rgba(30, 41, 59, 0.85)"  # slate-800/85 for light (koyu)
-        
-        header_widget.setStyleSheet(f"""
-            QWidget {{
-                background-color: {bg_color};
-                border-radius: 6px;
-            }}
-        """)
-        
-        header_layout = QHBoxLayout(header_widget)
-        header_layout.setContentsMargins(12, 8, 12, 8)
-        header_layout.setSpacing(8)
-        
-        # Renkli başlık metni - light modda siyah outline
+    def _add_section_label(self, layout, text):
+        """Bölüm etiketi ekle."""
         label = QLabel(text)
-        label.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
-        if self.is_dark_mode:
-            label.setStyleSheet(f"color: {section_color}; background: transparent;")
-        else:
-            # Light mode: siyah outline efekti (QGraphicsDropShadowEffect)
-            label.setStyleSheet(f"""
-                color: {section_color};
-                background: transparent;
-            """)
-            # Siyah gölge ile outline simülasyonu
-            shadow = QGraphicsDropShadowEffect()
-            shadow.setBlurRadius(0)  # Keskin kenar
-            shadow.setOffset(1, 1)   # 1px offset
-            shadow.setColor(QColor(0, 0, 0))  # Siyah
-            label.setGraphicsEffect(shadow)
-        header_layout.addWidget(label)
-        header_layout.addStretch()
-        
-        layout.addWidget(header_widget)
+        label.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        label.setStyleSheet(f"color: {self.accent_color}; margin-top: 8px;")
+        layout.addWidget(label)
     
     def _on_setting_changed(self):
         """Herhangi bir ayar değiştiğinde dişli çarkı döndür."""
@@ -876,9 +748,7 @@ class SettingsDialog(QDialog):
             if filename == "none":
                 return
             
-            # Bundled kaynaklar için doğru sounds dizinini kullan
-            sounds_dir = get_resource_dir() / "sounds"
-            
+            sounds_dir = Path(__file__).parent.parent / "sounds"
             sound_path = sounds_dir / filename
             
             if sound_path.exists():
@@ -900,7 +770,7 @@ class SettingsDialog(QDialog):
         self.path_entry.setText(self.config.get("save_path", ""))
         self.notification_check.setChecked(self.config.get("show_notification", True))
         self.sound_enabled_check.setChecked(self.config.get("play_sound", True))
-        # dark_mode_check kaldırıldı - sağ üst tema butonu ile yönetiliyor
+        self.dark_mode_check.setChecked(self.config.get("dark_mode", True))
         
         # Ses seçimi
         sound_file = self.config.get("sound_file", "none")
@@ -935,20 +805,6 @@ class SettingsDialog(QDialog):
     def _open_monitor_selector(self):
         """Monitör seçici penceresini aç."""
         try:
-            import sys
-            import os
-            
-            # EXE için doğru import yolunu ayarla
-            if getattr(sys, 'frozen', False):
-                # PyInstaller EXE
-                base_dir = os.path.dirname(sys.executable)
-            else:
-                # Normal Python script
-                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            
-            if base_dir not in sys.path:
-                sys.path.insert(0, base_dir)
-            
             from monitor_selector import MonitorSelector
             
             def on_monitor_selected(monitor_id):
@@ -960,8 +816,6 @@ class SettingsDialog(QDialog):
             selector.exec()
         except Exception as e:
             print(f"Monitor selector error: {e}")
-            import traceback
-            traceback.print_exc()
     
     def _save_settings(self):
         """Ayarları kaydet."""
@@ -1001,6 +855,10 @@ class SettingsDialog(QDialog):
             msg = "Could not save settings!" if language == "en" else "Ayarlar kaydedilemedi!"
             title = "Error" if language == "en" else "Hata"
             QMessageBox.critical(self, title, msg)
+    
+    def show(self):
+        """Pencereyi göster."""
+        self.exec()
 
 
 def open_settings(parent=None, on_save_callback=None):
@@ -1010,8 +868,8 @@ def open_settings(parent=None, on_save_callback=None):
 
 
 if __name__ == "__main__":
-    # Doğrudan çalıştırıldığında ayarlar penceresini göster
+    # Test
     app = QApplication(sys.argv)
     dialog = SettingsDialog()
-    dialog.exec()  # Modal dialog olarak aç
-
+    dialog.show()
+    sys.exit(app.exec())

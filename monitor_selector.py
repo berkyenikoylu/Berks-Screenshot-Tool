@@ -15,7 +15,12 @@ import os
 import mss
 
 # Ana modülü import edebilmek için path ekle
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+if getattr(sys, 'frozen', False):
+    _base = sys._MEIPASS
+else:
+    _base = os.path.dirname(os.path.abspath(__file__))
+if _base not in sys.path:
+    sys.path.insert(0, _base)
 from config import load_config, save_config
 from i18n import t
 
@@ -96,11 +101,11 @@ class MonitorCard(QFrame):
     def _update_style(self):
         """Kart stilini güncelle."""
         if self.is_selected:
-            bg_color = "#0078d4"
-            border_color = "#0078d4"
+            bg_color = "#2563eb"
+            border_color = "#3b82f6"
         else:
-            bg_color = "#3d3d3d" if self.dark_mode else "#e0e0e0"
-            border_color = "#4d4d4d" if self.dark_mode else "#d0d0d0"
+            bg_color = "#475569" if self.dark_mode else "#e0e0e0"
+            border_color = "#64748b" if self.dark_mode else "#d0d0d0"
         
         fg_color = "#ffffff" if self.dark_mode or self.is_selected else "#1e1e1e"
         
@@ -157,7 +162,8 @@ class MonitorSelector(QDialog):
         if self.is_dark_mode:
             self.setStyleSheet("""
                 QDialog {
-                    background-color: #1e1e1e;
+                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                        stop:0 #334155, stop:1 #1e293b);
                 }
                 QLabel {
                     color: #ffffff;
@@ -189,7 +195,7 @@ class MonitorSelector(QDialog):
         desc_label = QLabel(t("monitor_selector_desc"))
         desc_label.setFont(QFont("Segoe UI", 10))
         desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        desc_label.setStyleSheet("color: #888888;")
+        desc_label.setStyleSheet("color: #94a3b8;" if self.is_dark_mode else "color: #888888;")
         layout.addWidget(desc_label)
         
         # Kartlar container
@@ -236,16 +242,18 @@ class MonitorSelector(QDialog):
         save_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         save_btn.setStyleSheet("""
             QPushButton {
-                background-color: #0078d4;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #3b82f6, stop:1 #2563eb);
                 color: white;
                 border: none;
                 border-radius: 6px;
             }
             QPushButton:hover {
-                background-color: #1084d8;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #1E88E5, stop:1 #42A5F5);
             }
             QPushButton:pressed {
-                background-color: #006cbd;
+                background-color: #1d4ed8;
             }
         """)
         save_btn.clicked.connect(self._save_selection)

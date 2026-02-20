@@ -5,7 +5,33 @@ Kullanıcı ayarlarını JSON dosyasından yükler ve kaydeder.
 
 import json
 import os
+import sys
 from pathlib import Path
+
+
+def get_resource_dir() -> Path:
+    """Bundled kaynakların (ses dosyaları vb.) bulunduğu dizini döndür.
+    
+    PyInstaller onefile modda kaynaklar sys._MEIPASS geçici dizinine çıkarılır.
+    Normal çalıştırmada proje dizinini döndürür.
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller EXE - _MEIPASS geçici çıkarma dizini
+        return Path(sys._MEIPASS)
+    else:
+        return Path(__file__).parent
+
+
+def get_app_dir() -> Path:
+    """Kullanıcı verilerinin (config.json vb.) bulunduğu dizini döndür.
+    
+    EXE'de executable'ın bulunduğu dizin, script modunda proje dizini.
+    """
+    if getattr(sys, 'frozen', False):
+        return Path(sys.executable).parent
+    else:
+        return Path(__file__).parent
+
 
 # Varsayılan ayarlar
 DEFAULT_CONFIG = {
@@ -22,9 +48,15 @@ DEFAULT_CONFIG = {
     "language": "tr"  # tr = Türkçe, en = English
 }
 
-# Ayar dosyası yolu
-CONFIG_DIR = Path(__file__).parent
+
+# Ayar dosyası yolu - EXE için doğru konum
+def get_config_dir():
+    """Config dizinini al - EXE veya script için doğru yolu döndür."""
+    return get_app_dir()
+
+CONFIG_DIR = get_config_dir()
 CONFIG_FILE = CONFIG_DIR / "config.json"
+
 
 
 def load_config() -> dict:

@@ -55,6 +55,12 @@ class HotkeyManager:
                 pass
             self._running = False
             self._hotkey = None
+        
+        # Tüm hook'ları temizle - process'in kapanabilmesi için
+        try:
+            keyboard.unhook_all()
+        except:
+            pass
     
     def update_hotkey(self, new_hotkey: str):
         """Kısayol tuşunu değiştir."""

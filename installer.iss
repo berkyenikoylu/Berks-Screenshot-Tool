@@ -1,6 +1,5 @@
 ; Berk's Screenshot Tool - Inno Setup Installer Script
 ; Build: iscc installer.iss
-; Özellikler: Güncelleme algılama, temiz kurulum seçeneği, çalışan programı kapatma
 
 #define MyAppName "Berk's Screenshot Tool"
 #define MyAppVersion "1.0.0"
@@ -27,7 +26,6 @@ LicenseFile=LICENSE
 ; Output settings
 OutputDir=dist
 OutputBaseFilename=BerksScreenshotTool-Setup
-SetupIconFile=
 ; Compression
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -42,42 +40,20 @@ UninstallDisplayName={#MyAppName}
 ; Architecture
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-
-; === GÜNCELLEME ÖZELLİKLERİ ===
-; Önceki kurulum dizinini kullan
+; Güncelleme için
 UsePreviousAppDir=yes
-; Önceki grup adını kullan
 UsePreviousGroup=yes
-; Önceki görevleri kullan
 UsePreviousTasks=yes
 ; Çalışan uygulamayı kapat
 CloseApplications=force
 CloseApplicationsFilter=*.exe
-RestartApplications=yes
-; Minimum versiyon kontrolü (güncelleme için)
+RestartApplications=no
+; Minimum Windows versiyonu
 MinVersion=10.0
 
 [Languages]
 Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
-
-[CustomMessages]
-; Türkçe mesajlar
-turkish.UpdateDetected=Bilgisayarınızda {#MyAppName} sürüm %1 kurulu.%n%nNe yapmak istiyorsunuz?
-turkish.UpdateOption=Güncelle (ayarları koru)
-turkish.CleanInstallOption=Temiz Kurulum (her şeyi sil)
-turkish.InstalledVersion=Kurulu Sürüm: %1
-turkish.NewVersion=Yeni Sürüm: {#MyAppVersion}
-turkish.ClosingApp=Program kapatılıyor...
-turkish.CleaningOldFiles=Eski dosyalar temizleniyor...
-; İngilizce mesajlar
-english.UpdateDetected={#MyAppName} version %1 is installed on your computer.%n%nWhat would you like to do?
-english.UpdateOption=Update (keep settings)
-english.CleanInstallOption=Clean Install (delete everything)
-english.InstalledVersion=Installed Version: %1
-english.NewVersion=New Version: {#MyAppVersion}
-english.ClosingApp=Closing application...
-english.CleaningOldFiles=Cleaning old files...
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
@@ -86,6 +62,8 @@ Name: "startupicon"; Description: "Windows ile başlat / Start with Windows"; Gr
 [Files]
 ; Main executable
 Source: "dist\BerksScreenshotTool.exe"; DestDir: "{app}"; Flags: ignoreversion
+; Sounds folder
+Source: "sounds\*.wav"; DestDir: "{app}\sounds"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; License
 Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 ; README
@@ -103,113 +81,21 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\config.json"
 Type: filesandordirs; Name: "{app}\__pycache__"
+Type: filesandordirs; Name: "{app}\sounds"
 
 [UninstallRun]
 ; Kaldırma öncesi programı kapat
 Filename: "taskkill"; Parameters: "/F /IM {#MyAppExeName}"; Flags: runhidden nowait; RunOnceId: "KillApp"
 
 [Code]
-var
-  UpdatePage: TInputOptionWizardPage;
-  InstalledVersion: String;
-  IsUpgrade: Boolean;
-  CleanInstall: Boolean;
-
-// Registry'den kurulu versiyonu oku
-function GetInstalledVersion(): String;
-var
-  Version: String;
-begin
-  Result := '';
-  if RegQueryStringValue(HKEY_CURRENT_USER, 
-    'Software\Microsoft\Windows\CurrentVersion\Uninstall\{A3B2C1D0-E5F6-4A7B-8C9D-0E1F2A3B4C5D}_is1',
-    'DisplayVersion', Version) then
-  begin
-    Result := Version;
-  end
-  else if RegQueryStringValue(HKEY_LOCAL_MACHINE,
-    'Software\Microsoft\Windows\CurrentVersion\Uninstall\{A3B2C1D0-E5F6-4A7B-8C9D-0E1F2A3B4C5D}_is1',
-    'DisplayVersion', Version) then
-  begin
-    Result := Version;
-  end;
-end;
-
-// Kurulu olup olmadığını kontrol et
-function IsAppInstalled(): Boolean;
-begin
-  InstalledVersion := GetInstalledVersion();
-  Result := (InstalledVersion <> '');
-end;
-
-// Çalışan programı kapat
-procedure KillRunningApp();
+// Kurulum başlamadan önce çalışan programı kapat
+function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   ResultCode: Integer;
 begin
-  Exec('taskkill', '/F /IM {#MyAppExeName}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  Sleep(500); // Programın kapanmasını bekle
-end;
-
-// Eski dosyaları temizle (temiz kurulum için)
-procedure CleanOldInstallation();
-var
-  InstallPath: String;
-begin
-  InstallPath := ExpandConstant('{app}');
-  if DirExists(InstallPath) then
-  begin
-    DelTree(InstallPath, True, True, True);
-  end;
-end;
-
-// Güncelleme sayfasını oluştur
-procedure InitializeWizard();
-begin
-  IsUpgrade := IsAppInstalled();
-  CleanInstall := False;
-  
-  if IsUpgrade then
-  begin
-    UpdatePage := CreateInputOptionPage(wpWelcome,
-      'Kurulum Türü / Installation Type',
-      ExpandConstant('{cm:InstalledVersion,' + InstalledVersion + '}') + #13#10 + 
-      ExpandConstant('{cm:NewVersion}'),
-      ExpandConstant('{cm:UpdateDetected,' + InstalledVersion + '}'),
-      True, False);
-    
-    UpdatePage.Add(ExpandConstant('{cm:UpdateOption}'));
-    UpdatePage.Add(ExpandConstant('{cm:CleanInstallOption}'));
-    UpdatePage.Values[0] := True; // Varsayılan: Güncelle
-  end;
-end;
-
-// Sayfa değiştiğinde
-function NextButtonClick(CurPageID: Integer): Boolean;
-begin
-  Result := True;
-  
-  if IsUpgrade and (CurPageID = UpdatePage.ID) then
-  begin
-    CleanInstall := UpdatePage.Values[1];
-    
-    // Çalışan programı kapat
-    WizardForm.StatusLabel.Caption := ExpandConstant('{cm:ClosingApp}');
-    KillRunningApp();
-    
-    // Temiz kurulum seçildiyse eski dosyaları sil
-    if CleanInstall then
-    begin
-      WizardForm.StatusLabel.Caption := ExpandConstant('{cm:CleaningOldFiles}');
-      CleanOldInstallation();
-    end;
-  end;
-end;
-
-// Kurulum başlamadan önce
-function PrepareToInstall(var NeedsRestart: Boolean): String;
-begin
   Result := '';
-  // Çalışan programı kapat (güvenlik için tekrar)
-  KillRunningApp();
+  // Çalışan programı kapat
+  Exec('taskkill', '/F /IM {#MyAppExeName}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Sleep(500);
 end;
+

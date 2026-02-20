@@ -13,11 +13,12 @@ import sys
 class NotificationWidget(QWidget):
     """Bildirim penceresi widget'ı."""
     
-    def __init__(self, message: str, duration: float, dark_mode: bool):
+    def __init__(self, message: str, duration: float, dark_mode: bool, title: str = "Screenshot Taken"):
         super().__init__()
         self.message = message
         self.duration = duration
         self.dark_mode = dark_mode
+        self.title_text = title
         
         self._setup_window()
         self._create_widgets()
@@ -94,7 +95,7 @@ class NotificationWidget(QWidget):
         text_inner_layout.setSpacing(2)
         
         # Başlık
-        title_label = QLabel("Ekran Görüntüsü Alındı")
+        title_label = QLabel(self.title_text)
         title_label.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
         title_label.setStyleSheet(f"color: {fg_color}; background: transparent; border: none;")
         text_inner_layout.addWidget(title_label)
@@ -144,20 +145,21 @@ class NotificationWidget(QWidget):
 
 def main():
     if len(sys.argv) < 4:
-        print("Kullanım: python _notification_process.py <message> <duration> <dark_mode>")
+        print("Usage: python _notification_process.py <message> <duration> <dark_mode> [title]")
         sys.exit(1)
     
     message = sys.argv[1]
     duration = float(sys.argv[2])
     dark_mode = sys.argv[3].lower() == "true"
+    title = sys.argv[4] if len(sys.argv) > 4 else "Screenshot Taken"
     
     try:
         app = QApplication(sys.argv)
-        notification = NotificationWidget(message, duration, dark_mode)
+        notification = NotificationWidget(message, duration, dark_mode, title)
         notification.show()
         sys.exit(app.exec())
     except Exception as e:
-        print(f"Bildirim hatası: {e}")
+        print(f"Notification error: {e}")
         sys.exit(1)
 
 

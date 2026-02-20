@@ -213,6 +213,10 @@ TRANSLATIONS = {
         "tr": "📸 Ekran Görüntüsü",
         "en": "📸 Screenshot"
     },
+    "notification_screenshot_taken": {
+        "tr": "Ekran Görüntüsü Alındı",
+        "en": "Screenshot Taken"
+    },
     
     # === Algılama ===
     "desktop": {
